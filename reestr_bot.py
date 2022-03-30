@@ -394,11 +394,11 @@ def give_m2(message):
                             bot.send_message(message.chat.id,
                                                  "Это оборудование уже выдали. Введи id выданного оборудования:")
                             bot.register_next_step_handler(message, check_id_vidacha)
-                else:
-                    tp_setting['Дата выдачи'] = time_m(message.date)
-                    tp_setting['Data_v'] = message.date
-                    bot.send_message(message.chat.id, "Дата выдачи: " + f"{tp_setting['Дата выдачи']}")
-                    view.add_data_vid_tp_update(tp_setting['Data_v'], tp_setting['id_v'])
+                        if i[1] == 0:
+                            tp_setting['Дата выдачи'] = time_m(message.date)
+                            tp_setting['Data_v'] = message.date
+                            bot.send_message(message.chat.id, "Дата выдачи: " + f"{tp_setting['Дата выдачи']}")
+                            view.add_data_vid_tp_update(tp_setting['Data_v'], tp_setting['id_v'])
         else:
             bot.send_message(message.chat.id, 'Неверный формат. Введи id оборудования (только цифры):')
             bot.register_next_step_handler(message, check_id_vidacha)
