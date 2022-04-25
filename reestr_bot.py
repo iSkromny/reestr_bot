@@ -15,22 +15,20 @@ logging.basicConfig(filename='log.log', filemode='a', format='%(asctime)s, - %(n
 # telebot.logger.setLevel(logging.DEBUG)
 
 
-# username_n = view.user_id()
 nachalniki_otdelov = []  # список нач отедлов из БД
 for i in view.nachalniki_otdelov_id():
     nachalniki_otdelov += i
 
-# username_tp = view.tp_user_id()
+
 sisok_users_tp = []  # список сотрудников ТП из БД
 for i in view.tehpod_user_id():
     sisok_users_tp += i
 
-# id_equipment = view.check_id_equipment()
+
 id_equipment = []  # список id оборудования из БД
 for i in view.check_id_equipment():
     id_equipment += i
 
-# NN = view.check_NN()
 nn = []  # список накладных из БД
 for i in view.check_NN():
     nn += i
@@ -157,8 +155,13 @@ def send_to_sklad(message):
 @bot.message_handler(commands=['return_e'])
 def return_button(message):
     try:
-        bot.send_message(message.chat.id, 'Введи id оборудования для возврата на склад')
-        bot.register_next_step_handler(message, return_equipment)
+        for element in view.tp_name_user_id():
+            if message.from_user.id == element[0]:
+                return_eq["Familiya"] = element[1]
+                break
+        if message.from_user.id in sisok_users_tp:
+            bot.send_message(message.chat.id, 'Введи id оборудования для возврата на склад')
+            bot.register_next_step_handler(message, return_equipment)
     except Exception as e:
         bot.reply_to(message, 'В return_button ошибка: ' + f'{e}')
         print(e)
@@ -174,18 +177,19 @@ def input_id(message):
 
 def return_equipment(message):
     try:
-        return_eq = message.text
-        if return_eq.isdigit():
-            if len(return_eq) < 3 or len(return_eq) > 5:
-                bot.send_message(message.chat.id, 'Неверное количество символов. Введи id оборудования:')
-                bot.register_next_step_handler(message, return_equipment)
-            else:
-                b = f'Возврат на склад id{return_eq}'
-                bot.send_message(message.chat.id, b)
-                view.add_return_equipment(equipment_id=return_eq)
+        return_eq["ID Оборудования"] = message.text
+        if int(message.text) in id_equipment:
+            # if len(return_eq["ID Оборудования"]) < 3 or len(return_eq["ID Оборудования"]) > 5:
+            #     bot.send_message(message.chat.id, 'Неверное количество символов. Введи id оборудования:')
+            #     bot.register_next_step_handler(message, input_id)
+            # else:
+            return_eq['data_vozvrata'] = message.date
+            # b = f'Возврат на склад id{return_eq["ID Оборудования"]}'
+            bot.send_message(message.chat.id, f'Возврат на склад id{return_eq["ID Оборудования"]}')
+            view.add_return_equipment(return_eq["ID Оборудования"], return_eq["Familiya"], return_eq["data_vozvrata"])
         else:
             bot.send_message(message.chat.id, 'Неверный формат. Введи id оборудования (только цифры):')
-            bot.register_next_step_handler(message, return_equipment)
+            bot.register_next_step_handler(message, input_id)
     except Exception as e:
         bot.reply_to(message, 'В функции return_equipment ошибка:' + f'{e}')
         print(e)
