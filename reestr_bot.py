@@ -375,7 +375,7 @@ def date_give(message):
         bot.reply_to(message, 'В date_give ошибка: ' + f'{e}')
         print(e)
     print(tp_setting)
-
+    os.system("python list.py")
 
 @bot.message_handler(commands=['give_away'])
 def give_away(message):
