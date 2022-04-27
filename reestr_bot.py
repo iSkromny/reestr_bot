@@ -19,19 +19,21 @@ nachalniki_otdelov = []  # список нач отедлов из БД
 for i in view.nachalniki_otdelov_id():
     nachalniki_otdelov += i
 
-
 sisok_users_tp = []  # список сотрудников ТП из БД
 for i in view.tehpod_user_id():
     sisok_users_tp += i
 
+def eq_check_id_equipment():
+    id_equipment = []  # список id оборудования из БД
+    for i in view.check_id_equipment():
+        id_equipment += i
+    return id_equipment
 
-id_equipment = []  # список id оборудования из БД
-for i in view.check_id_equipment():
-    id_equipment += i
-
-nn = []  # список накладных из БД
-for i in view.check_NN():
-    nn += i
+def nom_nak():
+    nn = []  # список накладных из БД
+    for i in view.check_NN():
+        nn += i
+    return nn
 
 print("Bot started")
 
@@ -49,11 +51,9 @@ def send_welcome(message):
         bot.send_message(message.chat.id, """Привет. Ознакомься с возможными командами: \n
 /give - заявка на выдачу оборудования со склада. Доступна только для начальников отдела.
 /return_e - заявка на возврат оборудования. Доступна только для начальников отдела.
-/replace - заявка на замену оборудования. Доступна только для начальников отдела.
 /setting - настройка оборудования ТП для монтажного отдела. Доступна только для отдела техподдержки.
 /give_away - выдача настроенного оборудования монтажному отделу. Доступна только для отдела техподдержки.
 /install - приём установленного оборудования. Доступна только для отдела техподдержки.""")
-
 
     except Exception as e:
         bot.reply_to(message, 'В функции send_welcome ошибка: ' + f'{e}')
@@ -67,7 +67,7 @@ def user_choice(message):
         for element in view.otdely_tlgrm_user_id():
             if message.from_user.id == element[0]:
                 give_msg["Нач.Отдела"] = element[1]
-                # give_msg["NO"] = message.from_user.id
+                give_msg["tg_id"] = message.from_user.id
                 break
         spisok_equipment = ""
         for element in view.select_equip():
@@ -142,7 +142,7 @@ def send_to_sklad(message):
     except Exception as e:
         bot.reply_to(message, 'В функции send_to_sklad ошибка: ' + f'{e}')
         print(e)
-    view.add_columns_reestr(user_id=give_msg["Нач.Отдела"], equipment=give_msg["Оборудование"],
+    view.add_columns_reestr(user_id=give_msg["tg_id"], equipment=give_msg["Оборудование"],
                             kolvo=give_msg["Количество"], sotrudnik=give_msg["Сотрудник"],
                             address=give_msg["Адрес узла"],
                             reason=give_msg["Обоснование"],
@@ -177,7 +177,7 @@ def input_id(message):
 def return_equipment(message):
     try:
         return_eq["ID Оборудования"] = message.text
-        if int(message.text) in id_equipment:
+        if int(message.text) in eq_check_id_equipment:
             # if len(return_eq["ID Оборудования"]) < 3 or len(return_eq["ID Оборудования"]) > 5:
             #     bot.send_message(message.chat.id, 'Неверное количество символов. Введи id оборудования:')
             #     bot.register_next_step_handler(message, input_id)
@@ -283,6 +283,7 @@ def setting(message):
         for y in view.tp_name_user_id():
             if message.from_user.id == y[0]:
                 tp_setting['Фам'] = y[1]
+                tp_setting["Familiya"] = message.from_user.id
                 break
         # tp_setting['Фам'] = message.from_user.id
         if message.from_user.id in sisok_users_tp:
@@ -300,7 +301,7 @@ def setup_tp(message):
             if len(tp_setting["NN"]) < 4 or len(tp_setting['NN']) > 5:
                 bot.send_message(message.chat.id, "Неверное количество символов. Введи номер накладной:")
                 bot.register_next_step_handler(message, nomer_nakladnoy)
-            elif int(message.text) in nn:
+            elif int(message.text) in nom_nak:
                 bot.send_message(message.chat.id,
                                  "Такая накладная уже есть в базе. Введи правильный номер накладной:")
                 bot.register_next_step_handler(message, nomer_nakladnoy)
@@ -339,7 +340,7 @@ def id_equip(message):
             if len(tp_setting["id оборудования"]) < 3 or len(tp_setting["id оборудования"]) > 5:
                 bot.send_message(message.chat.id, "Неверное количество символов. Введи id оборудования:")
                 bot.register_next_step_handler(message, id_oborudovaniya)
-            elif int(message.text) in id_equipment:
+            elif int(message.text) in eq_check_id_equipment:
                 bot.send_message(message.chat.id, "Такой id уже есть в базе. Введи правильный id:")
                 bot.register_next_step_handler(message, id_oborudovaniya)
             else:
@@ -363,7 +364,7 @@ def date_give(message):
                 tp_setting['Дата выдачи'] = time_m(message.date)
                 tp_setting['Data_v'] = message.date
                 bot.send_message(message.chat.id, "Дата выдачи: " + f"{tp_setting['Дата выдачи']}")
-                view.add_reestr_tp(tp_setup_id=tp_setting['Фам'], n_n=tp_setting["NN"],
+                view.add_reestr_tp(tp_setup_id=tp_setting["Familiya"], n_n=tp_setting["NN"],
                                    id_equip=tp_setting['id оборудования'],
                                    data_setup=tp_setting['Data_sett'],
                                    data_vid=tp_setting['Data_v'], data_install=0, tp_install_id=0)
@@ -371,7 +372,7 @@ def date_give(message):
         else:
             bot.send_message(message.chat.id, 'Введи команду /give_away когда будешь выдавать оборудование на руки')
             # bot.register_next_step_handler(message, date_give)
-            view.add_reestr_tp(tp_setup_id=tp_setting['Фам'], n_n=tp_setting["NN"],
+            view.add_reestr_tp(tp_setup_id=tp_setting["Familiya"], n_n=tp_setting["NN"],
                                id_equip=tp_setting['id оборудования'],
                                data_setup=tp_setting['Data_sett'],
                                data_vid=0, data_install=0, tp_install_id=0)
@@ -380,7 +381,7 @@ def date_give(message):
         print(e)
     print(tp_setting)
     os.system("python list.py")
-    tp_setting.clear()
+    # tp_setting.clear()
 
 @bot.message_handler(commands=['give_away'])
 def give_away(message):
@@ -408,7 +409,7 @@ def give_m2(message):
             if len(tp_setting['id_v']) < 3 or len(tp_setting['id_v']) > 5:
                 bot.send_message(message.chat.id, 'Неверное количество символов. Введи id выданного оборудования:')
                 bot.register_next_step_handler(message, check_id_vidacha)
-            elif int(message.text) in id_equipment:
+            elif int(message.text) in eq_check_id_equipment:
                 for i in view.data_vid():
                     # if int(message.text) != i[0]:
                     #     helper_for_mistake(message)
@@ -431,7 +432,7 @@ def give_m2(message):
         bot.reply_to(message, 'В give_m2 ошибка: ' + f'{e}')
         print(e)
     os.system("python list.py")
-    tp_setting.clear()
+    # tp_setting.clear()
 
 
 @bot.message_handler(commands=['install'])
@@ -456,12 +457,13 @@ def installchekid(message):
 
 def install2(message):
     try:
+
         tp_setting['Проверка id'] = message.text
         if tp_setting['Проверка id'].isdigit():
             if len(tp_setting['Проверка id']) < 3 or len(tp_setting['Проверка id']) > 5:
                 bot.send_message(message.chat.id, 'Неверное количество символов. Введи id выданного оборудования:')
                 bot.register_next_step_handler(message, installchekid)
-            elif int(message.text) in id_equipment:
+            elif int(message.text) in eq_check_id_equipment():
                 for i in view.data_install():
                     if int(message.text) == i[0]:
                         if i[1] != 0:
@@ -477,7 +479,6 @@ def install2(message):
                                                             id_equi=tp_setting['Проверка id'])
             else:
                 bot.send_message(message.chat.id, "Такого id нет в базе. Введи команду /install снова.")
-
         else:
             bot.send_message(message.chat.id, 'Неверный формат. Введи id оборудования (только цифры):')
             bot.register_next_step_handler(message, installchekid)
@@ -485,7 +486,11 @@ def install2(message):
         bot.reply_to(message, 'В setup2 ошибка: ' + f'{e}')
         print(e)
     os.system("python list.py")
-    tp_setting.clear()
+    # tp_setting.clear()
+
+
+
+
 
 def helper_for_mistake(message):
     try:
