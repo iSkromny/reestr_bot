@@ -134,14 +134,11 @@ def send_to_sklad(message):
     try:
         global answ
         give_msg['Кoмментарий'] = message.text
-        print(give_msg)
         a = f"Выдать \n"
         for k, v in give_msg.items():
             a += f"\n {k} {' ' * 8} {v}"
-        # bot.send_message(message.chat.id, a)
-        answ = bot.send_message(message.chat.id, a)
+        bot.send_message(message.chat.id, a)
         # bot.forward_message(-1001667039165, a)
-        # print(answ.id)
     except Exception as e:
         bot.reply_to(message, 'В функции send_to_sklad ошибка: ' + f'{e}')
         print(e)
@@ -151,6 +148,8 @@ def send_to_sklad(message):
                             reason=give_msg["Обоснование"],
                             comment_=give_msg["Кoмментарий"])
     os.system("python list.py")
+    give_msg.clear()
+    print(give_msg)
 
 @bot.message_handler(commands=['return_e'])
 def return_button(message):
@@ -193,86 +192,87 @@ def return_equipment(message):
     except Exception as e:
         bot.reply_to(message, 'В функции return_equipment ошибка:' + f'{e}')
         print(e)
+    os.system("python list.py")
+    return_eq.clear()
 
-
-@bot.message_handler(commands=['replace'])
-def replace_button(message):
-    global spisok_equipment
-    try:
-        for element in view.otdely_tlgrm_user_id():
-            if message.from_user.id == element[0]:
-                tp_replace['Нач.Отдела'] = element[1]
-                break
-        spisok_equipment = ""
-        for i in view.select_equip():
-            spisok_equipment += '\n' + "/" + i[0] + ' - ' + i[1] + '\n'
-        if message.from_user.id in nachalniki_otdelov:
-            bot.send_message(message.chat.id, 'Выбери оборудование \n' + spisok_equipment)
-            bot.register_next_step_handler(message, rep_more)
-    except Exception as e:
-        bot.reply_to(message, 'В replace_button ошибка: ' + f'{e}')
-        print(e)
-
-
-def rep_more(message):
-    try:
-        tp_replace["Оборудование"] = message.text[1:]
-        bot.send_message(message.chat.id, "Укажи количество:")
-        bot.register_next_step_handler(message, rep_otdel)
-    except Exception as e:
-        bot.reply_to(message, 'В функции rep_more ошибка: ' + f'{e}')
-        print(e)
-
-
-def rep_otdel(message):
-    try:
-        tp_replace["Количество"] = message.text
-        bot.send_message(message.chat.id, 'Введи фамилию сотрудника')
-        bot.register_next_step_handler(message, rep_add_address)
-    except Exception as e:
-        bot.reply_to(message, 'В функции rep_otdel ошибка: ' + f'{e}')
-        print(e)
-
-
-def rep_add_address(message):
-    try:
-        tp_replace['Сотрудник'] = message.text
-        bot.send_message(message.chat.id, 'Введи адрес установки узла:')
-        bot.register_next_step_handler(message, rep_comment)
-    except Exception as e:
-        bot.reply_to(message, 'В функции rep_add_address ошибка: ' + f'{e}')
-        print(e)
-
-
-def rep_comment(message):
-    try:
-        tp_replace['Адрес узла'] = message.text
-        bot.send_message(message.chat.id, 'Введи комментарий:')
-        bot.register_next_step_handler(message, rep_send_to_sklad)
-    except Exception as e:
-        bot.reply_to(message, 'В функции rep_comment ошибка: ' + f'{e}')
-        print(e)
-
-
-def rep_send_to_sklad(message):
-    try:
-        global answ
-        tp_replace['Кoмментарий'] = message.text
-        print(tp_replace)
-        a = f"ЗАМЕНИТЬ \n"
-        for k, v in tp_replace.items():
-            a += f"\n {k} {' ' * 8} {v}"
-        # bot.send_message(message.chat.id, a)
-        answ = bot.send_message(message.chat.id, a)
-        # bot.forward_message(-1001667039165, a)
-        # print(answ.id)
-    except Exception as e:
-        bot.reply_to(message, 'В функции rep_send_to_sklad ошибка: ' + f'{e}')
-        print(e)
-    view.add_columns_replace(user_id=tp_replace['Нач.Отдела'], kolvo=tp_replace["Количество"],
-                             equipment=tp_replace['Оборудование'],
-                             sotrudnik=tp_replace['Сотрудник'], address=tp_replace['Адрес узла'],
-                             comment_=tp_replace['Кoмментарий'])
+# @bot.message_handler(commands=['replace'])
+# def replace_button(message):
+#     global spisok_equipment
+#     try:
+#         for element in view.otdely_tlgrm_user_id():
+#             if message.from_user.id == element[0]:
+#                 tp_replace['Нач.Отдела'] = element[1]
+#                 break
+#         spisok_equipment = ""
+#         for i in view.select_equip():
+#             spisok_equipment += '\n' + "/" + i[0] + ' - ' + i[1] + '\n'
+#         if message.from_user.id in nachalniki_otdelov:
+#             bot.send_message(message.chat.id, 'Выбери оборудование \n' + spisok_equipment)
+#             bot.register_next_step_handler(message, rep_more)
+#     except Exception as e:
+#         bot.reply_to(message, 'В replace_button ошибка: ' + f'{e}')
+#         print(e)
+#
+#
+# def rep_more(message):
+#     try:
+#         tp_replace["Оборудование"] = message.text[1:]
+#         bot.send_message(message.chat.id, "Укажи количество:")
+#         bot.register_next_step_handler(message, rep_otdel)
+#     except Exception as e:
+#         bot.reply_to(message, 'В функции rep_more ошибка: ' + f'{e}')
+#         print(e)
+#
+#
+# def rep_otdel(message):
+#     try:
+#         tp_replace["Количество"] = message.text
+#         bot.send_message(message.chat.id, 'Введи фамилию сотрудника')
+#         bot.register_next_step_handler(message, rep_add_address)
+#     except Exception as e:
+#         bot.reply_to(message, 'В функции rep_otdel ошибка: ' + f'{e}')
+#         print(e)
+#
+#
+# def rep_add_address(message):
+#     try:
+#         tp_replace['Сотрудник'] = message.text
+#         bot.send_message(message.chat.id, 'Введи адрес установки узла:')
+#         bot.register_next_step_handler(message, rep_comment)
+#     except Exception as e:
+#         bot.reply_to(message, 'В функции rep_add_address ошибка: ' + f'{e}')
+#         print(e)
+#
+#
+# def rep_comment(message):
+#     try:
+#         tp_replace['Адрес узла'] = message.text
+#         bot.send_message(message.chat.id, 'Введи комментарий:')
+#         bot.register_next_step_handler(message, rep_send_to_sklad)
+#     except Exception as e:
+#         bot.reply_to(message, 'В функции rep_comment ошибка: ' + f'{e}')
+#         print(e)
+#
+#
+# def rep_send_to_sklad(message):
+#     try:
+#         global answ
+#         tp_replace['Кoмментарий'] = message.text
+#         print(tp_replace)
+#         a = f"ЗАМЕНИТЬ \n"
+#         for k, v in tp_replace.items():
+#             a += f"\n {k} {' ' * 8} {v}"
+#         # bot.send_message(message.chat.id, a)
+#         answ = bot.send_message(message.chat.id, a)
+#         # bot.forward_message(-1001667039165, a)
+#         # print(answ.id)
+#     except Exception as e:
+#         bot.reply_to(message, 'В функции rep_send_to_sklad ошибка: ' + f'{e}')
+#         print(e)
+#     view.add_columns_replace(user_id=tp_replace['Нач.Отдела'], kolvo=tp_replace["Количество"],
+#                              equipment=tp_replace['Оборудование'],
+#                              sotrudnik=tp_replace['Сотрудник'], address=tp_replace['Адрес узла'],
+#                              comment_=tp_replace['Кoмментарий'])
 
 
 @bot.message_handler(commands=["setting"])
@@ -380,6 +380,7 @@ def date_give(message):
         print(e)
     print(tp_setting)
     os.system("python list.py")
+    tp_setting.clear()
 
 @bot.message_handler(commands=['give_away'])
 def give_away(message):
@@ -401,28 +402,28 @@ def check_id_vidacha(message):
 
 
 def give_m2(message):
-    global data_vid
     try:
-        data_vid = view.data_vid()
-        print(data_vid)
         tp_setting['id_v'] = message.text
         if tp_setting['id_v'].isdigit():
             if len(tp_setting['id_v']) < 3 or len(tp_setting['id_v']) > 5:
                 bot.send_message(message.chat.id, 'Неверное количество символов. Введи id выданного оборудования:')
                 bot.register_next_step_handler(message, check_id_vidacha)
-            for i in data_vid:
-                # if int(message.text) != i[0]:
-                #     helper_for_mistake(message)
-                if int(message.text) == i[0]:
-                    if i[1] != 0:
-                        bot.send_message(message.chat.id,
-                                         "Это оборудование уже выдали. Введи id выданного оборудования:")
-                        bot.register_next_step_handler(message, check_id_vidacha)
-                    if i[1] == 0:
-                        tp_setting['Дата выдачи'] = time_m(message.date)
-                        tp_setting['Data_v'] = message.date
-                        bot.send_message(message.chat.id, "Дата выдачи: " + f"{tp_setting['Дата выдачи']}")
-                        view.add_data_vid_tp_update(tp_setting['Data_v'], tp_setting['id_v'])
+            elif int(message.text) in id_equipment:
+                for i in view.data_vid():
+                    # if int(message.text) != i[0]:
+                    #     helper_for_mistake(message)
+                    if int(message.text) == i[0]:
+                        if i[1] != 0:
+                            bot.send_message(message.chat.id,
+                                             "Это оборудование уже выдали. Введи id выданного оборудования:")
+                            bot.register_next_step_handler(message, check_id_vidacha)
+                        if i[1] == 0:
+                            tp_setting['Дата выдачи'] = time_m(message.date)
+                            tp_setting['Data_v'] = message.date
+                            bot.send_message(message.chat.id, "Дата выдачи: " + f"{tp_setting['Дата выдачи']}")
+                            view.add_data_vid_tp_update(tp_setting['Data_v'], tp_setting['id_v'])
+            else:
+                bot.send_message(message.chat.id, "Такого id нет в базе. Введи команду /give_away снова")
         else:
             bot.send_message(message.chat.id, 'Неверный формат. Введи id оборудования (только цифры):')
             bot.register_next_step_handler(message, check_id_vidacha)
@@ -430,7 +431,7 @@ def give_m2(message):
         bot.reply_to(message, 'В give_m2 ошибка: ' + f'{e}')
         print(e)
     os.system("python list.py")
-
+    tp_setting.clear()
 
 
 @bot.message_handler(commands=['install'])
@@ -454,34 +455,28 @@ def installchekid(message):
 
 
 def install2(message):
-    global data_inst
     try:
-        data_inst = view.data_install()
         tp_setting['Проверка id'] = message.text
         if tp_setting['Проверка id'].isdigit():
             if len(tp_setting['Проверка id']) < 3 or len(tp_setting['Проверка id']) > 5:
                 bot.send_message(message.chat.id, 'Неверное количество символов. Введи id выданного оборудования:')
                 bot.register_next_step_handler(message, installchekid)
-            for i in data_inst:
-                if int(message.text) == i[0]:
-                    if i[1] != 0:
-                        bot.send_message(message.chat.id,
-                                         "Это оборудование уже установили. Введи id установленного оборудования или "
-                                         "0000 для завершения команды:")
-                        bot.register_next_step_handler(message, installchekid)
-                    if i[1] == 0:
-                        tp_setting['Дата установки'] = time_m(message.date)
-                        tp_setting['Data_install'] = message.date
-                        bot.send_message(message.chat.id, "Дата установки: " + f"{tp_setting['Дата установки']}")
-                        view.add_data_install_tp_update(data_install=tp_setting['Data_install'],
-                                                        tp_install_id=tp_setting['Принял установку'],
-                                                        id_equi=tp_setting['Проверка id'])
-                # if int(message.text) != i[0]:
-                #     bot.send_message(message.chat.id,"Такого id нет в базе")
-                # if int(message.text) == 0000:
-                #     break
-                    # bot.send_message(message.chat.id, "Остановка работы команды. Введи новую команду или отправь "
-                    #                                   "/start для ознакомления со списком команд")
+            elif int(message.text) in id_equipment:
+                for i in view.data_install():
+                    if int(message.text) == i[0]:
+                        if i[1] != 0:
+                            bot.send_message(message.chat.id,
+                                             "Это оборудование уже установили. Введи id выданного оборудования:")
+                            bot.register_next_step_handler(message, installchekid)
+                        if i[1] == 0:
+                            tp_setting['Дата установки'] = time_m(message.date)
+                            tp_setting['Data_install'] = message.date
+                            bot.send_message(message.chat.id, "Дата установки: " + f"{tp_setting['Дата установки']}")
+                            view.add_data_install_tp_update(data_install=tp_setting['Data_install'],
+                                                            tp_install_id=tp_setting['Принял установку'],
+                                                            id_equi=tp_setting['Проверка id'])
+            else:
+                bot.send_message(message.chat.id, "Такого id нет в базе. Введи команду /install снова.")
 
         else:
             bot.send_message(message.chat.id, 'Неверный формат. Введи id оборудования (только цифры):')
@@ -489,6 +484,8 @@ def install2(message):
     except Exception as e:
         bot.reply_to(message, 'В setup2 ошибка: ' + f'{e}')
         print(e)
+    os.system("python list.py")
+    tp_setting.clear()
 
 def helper_for_mistake(message):
     try:
@@ -505,7 +502,7 @@ while True:
     try:
         if __name__ == '__main__':
             bot.skip_pending = True
-            bot.infinity_polling(skip_pending=True)
+            bot.infinity_polling()
     except Exception as e:
         logger.error(e)
         print(e)  # или просто print(e)
